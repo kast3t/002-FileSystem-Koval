@@ -1,5 +1,5 @@
 ﻿#include <iostream>
-#include "FAT32.h"
+#include "BFSCreator.h"
 
 int main()
 {
@@ -7,16 +7,21 @@ int main()
 	const WCHAR *pFileName = L"\\\\?\\F:";
 
 	try {
-		FAT32 fat32 = FAT32(pFileName);
-		std::cout << "Размер кластера: " << fat32.getClusterSize() << std::endl;
+		FSType fsType = FSType::FAT32;
 
-		BYTE *pBuffer = new BYTE[fat32.getClusterSize()];
-		fat32.readClusterNumber(2, pBuffer);
+		BFSCreator *fsCreator = new ConcreteBFSCreator;
+		BaseFileSystem *fs = fsCreator->createFileSystem(fsType, pFileName);
+
+		std::cout << "Размер кластера: " << fs->getClusterSize() << std::endl;
+
+		BYTE *pBuffer = new BYTE[fs->getClusterSize()];
+		fs->readClusterNumber(2, pBuffer);
 
 		std::cout << "Кластер успешно прочитан! Часть буфера (до нуль-байта): " << pBuffer;
 		std::cin.get();
 
 		delete[] pBuffer;
+		delete[] fsCreator;
 	}
 	catch (const char *errorMessage) {
 		std::cout << errorMessage << std::endl;

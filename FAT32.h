@@ -1,6 +1,5 @@
-#include <windows.h>
-#include "BaseFileSystem.h"
 #pragma once
+#include "BaseFileSystem.h"
 
 class FAT32 : public BaseFileSystem
 {
