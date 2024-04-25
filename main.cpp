@@ -1,5 +1,23 @@
 ﻿#include <iostream>
+#include <iomanip>
 #include "BFSCreator.h"
+#include "Cluster.h"
+
+void printBuffer(unsigned int clusterSize, BYTE *pBuffer)
+{
+	for (int i = 0; i < clusterSize; i++)
+	{
+		if (i % 16 == 0)
+		{
+			std::cout << std::endl;
+		}
+		if (i % 8 == 0 && i % 16 != 0 && i != 0)
+		{
+			std::cout << " ";
+		}
+		std::cout << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (0xff & (int)pBuffer[i]) << " ";
+	}
+}
 
 int main()
 {
@@ -11,16 +29,37 @@ int main()
 
 		BFSCreator *fsCreator = new ConcreteBFSCreator;
 		BaseFileSystem *fs = fsCreator->createFileSystem(fsType, pFileName);
+		unsigned int clusterSize = fs->getClusterSize();
 
-		std::cout << "Размер кластера: " << fs->getClusterSize() << std::endl;
+		std::cout << "Размер кластера: " << clusterSize << std::endl << std::endl;
 
-		BYTE *pBuffer = new BYTE[fs->getClusterSize()];
-		fs->readClusterNumber(2, pBuffer);
+		ClusterContainer clustersFAT32;
 
-		std::cout << "Кластер успешно прочитан! Часть буфера (до нуль-байта): " << pBuffer;
-		std::cin.get();
+		for (int i = 2; i < 5; i++) // Добавляем первые 15 кластеров (с 2 по 16)
+		{
+			clustersFAT32.addCluster(Cluster(i, pFileName));
+		}
 
-		delete[] pBuffer;
+		Iterator<Cluster> *iterator = clustersFAT32.getIterator();
+
+		for (iterator->first(); !iterator->isDone(); iterator->next())
+		{
+			Cluster currentCluster = iterator->getCurrent();
+
+			// Выделяем память для буфера, куда запишутся данные кластера
+			BYTE *pBuffer = new BYTE[clusterSize];
+			currentCluster.readCluster(fs, pBuffer);
+
+			std::cout << "Кластер №" << currentCluster.getNumber() << ", содержимое:" << std::endl;
+			printBuffer(clusterSize, pBuffer);
+			std::cout << std::endl;
+			std::cin.get();
+
+			// Освобождаем буфер
+			delete[] pBuffer;
+		}
+
+		delete iterator;
 		delete[] fsCreator;
 	}
 	catch (const char *errorMessage) {
