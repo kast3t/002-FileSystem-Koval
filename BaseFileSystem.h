@@ -13,7 +13,7 @@ protected:
 
 public:
     virtual unsigned int getClusterSize() const;
-    virtual void readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer) = 0;
+    virtual void readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer, DWORD bytesToRead = 0) = 0;
 
     BaseFileSystem(const WCHAR *pFileName);
     ~BaseFileSystem();

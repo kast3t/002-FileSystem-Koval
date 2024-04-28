@@ -2,20 +2,23 @@
 #include <windows.h>
 #include "BaseFileSystem.h"
 
+enum class ClusterEnum { PNG, None };
+
 class Cluster
 {
 private:
 	unsigned int number;
+	BaseFileSystem *fs;
 	
 public:
-	const WCHAR *pFileName;
 	Cluster();
-	Cluster(int clusterNumber, const WCHAR *pFileName);
+	Cluster(int clusterNumber, BaseFileSystem *fsPtr);
 	int getNumber();
-	void readCluster(BaseFileSystem *fs, BYTE *pBuffer);
+	void readCluster(BYTE *pBuffer);
+	ClusterEnum getClusterType();
 };
 
-const int maxCount = 1000;
+const int maxCount = 100000;
 
 template<class Type> class Iterator
 {
@@ -54,4 +57,27 @@ public:
 	void next();
 	bool isDone() const;
 	Cluster getCurrent() const;
+};
+
+template<class Type> class IteratorDecorator : public Iterator<Type>
+{
+protected:
+	Iterator<Type> *it;
+public:
+	IteratorDecorator(Iterator<Type> *iterator) { it = iterator; };
+	virtual ~IteratorDecorator() { delete it; };
+	virtual void first() { it->first(); };
+	virtual void next() { it->next(); };
+	virtual bool isDone() const { return it->isDone(); };
+	virtual Type getCurrent() const { return it->getCurrent(); };
+};
+
+class ClusterContainerIteratorDecorator : public IteratorDecorator<Cluster>
+{
+private:
+	ClusterEnum targetClusterType;
+public:
+	ClusterContainerIteratorDecorator(Iterator<Cluster> *it, ClusterEnum clusterType) : IteratorDecorator(it) { targetClusterType = clusterType; }
+	void first();
+	void next();
 };

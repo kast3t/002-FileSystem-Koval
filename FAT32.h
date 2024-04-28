@@ -7,7 +7,7 @@ private:
     unsigned int secondClusterOffset;
 
 public:
-    virtual void readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer);
+    virtual void readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer, DWORD bytesToRead);
 
     FAT32(const WCHAR *pFileName);
     ~FAT32();

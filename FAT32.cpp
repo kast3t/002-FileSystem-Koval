@@ -25,7 +25,7 @@ FAT32::FAT32(const WCHAR *pFileName) : BaseFileSystem(pFileName) {
 
 FAT32::~FAT32() {}
 
-void FAT32::readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer) {
+void FAT32::readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer, DWORD bytesToRead = 0) {
 	DWORD clusterSize = getClusterSize();
 	if (clusterSize == 0) {
 		throw "Ошибка чтения кластера: размер кластера не определён";
@@ -38,5 +38,10 @@ void FAT32::readClusterNumber(DWORD clusterNumber, BYTE *pResultBuffer) {
 	LARGE_INTEGER startOffset;
 	startOffset.QuadPart = secondClusterOffset + (clusterNumber - 2) * clusterSize;
 
-	readBytesFromOffset(startOffset, pResultBuffer, clusterSize);
+	if (bytesToRead == 0) {
+		readBytesFromOffset(startOffset, pResultBuffer, clusterSize);
+	}
+	else {
+		readBytesFromOffset(startOffset, pResultBuffer, bytesToRead);
+	}
 }
